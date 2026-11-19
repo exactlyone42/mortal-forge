@@ -49,5 +49,20 @@ if sorted(gone) != ["codex_old", "old"] or (proj / "old").exists():
     fail(f"only old files may go, got {gone}", out)
 if not files["open"].exists() or not files["new"].exists() or not files["codex_new"].exists():
     fail("open or recent file was deleted", out)
+link_target = home / "real-dir"
+link_target.mkdir()
+(link_target / "keep.txt").write_text("z")
+sym = proj / "sym.jsonl"
+sym.write_text("x")
+os.utime(sym, (old, old))
+(proj / "sym").symlink_to(link_target)
+out = run("--apply")
+if sym.exists() or not (link_target / "keep.txt").exists() or "失敗 0" not in out:
+    fail("symlinked sibling must not break or be followed", out)
+for bad in ("0", "nan", "-1"):
+    if "必須是大於 0" not in subprocess.run([sys.executable, "-I", str(scripts / "stale_transcripts.py"), "--min-age-hours", bad], capture_output=True, text=True).stderr:
+        fail(f"hours {bad} must be rejected", "")
+if (home / ".codex/sessions").exists() is False:
+    fail("sessions root must stay", "")
 holder.kill()
 print("OK", out.strip().splitlines()[-1])
