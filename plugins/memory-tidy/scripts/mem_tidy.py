@@ -32,12 +32,18 @@ def main():
     ap = argparse.ArgumentParser(description="一次檢查所有能釋放記憶體的項目；預設只預覽")
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--min-idle-hours", default="4")
+    ap.add_argument("--transcripts-hours", help="另外刪除超過這個時數沒更新的 claude／codex 對話記錄；不給就不處理")
     args = ap.parse_args()
+    steps = list(STEPS)
+    if args.transcripts_hours:
+        steps.append(("過期對話記錄", "stale_transcripts.py", ["--min-age-hours", args.transcripts_hours]))
 
     print("開始前：" + used_line())
     failed = 0
-    for title, script, extra in STEPS:
+    for title, script, extra in steps:
         step_args = [extra[0], args.min_idle_hours] if extra == ["--min-idle-hours"] else []
+        if script == "stale_transcripts.py":
+            step_args = list(extra)
         if args.apply:
             step_args.append("--apply")
             if extra == ["--tmp-with-apply"]:
