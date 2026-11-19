@@ -15,6 +15,8 @@ Frees memory by doing these things, in order:
 
 5. Stop orphan claude/codex processes: command line is claude or codex, parent gone, no terminal, running 30 minutes or more (`--agent-idle-hours`), not a live interactive session. Their child processes stop with them. codex app-server is never touched. Use `--only REGEX` to limit any tidy run to matching command lines.
 
+6. Optional, off by default: delete claude/codex conversation records (`~/.claude/projects/*/*.jsonl`, `~/.codex/sessions/**/*.jsonl`) that have not changed for N hours. This removes the history, so `claude --resume` can no longer open those sessions. Run it only when the user asks: `mem_tidy.py --transcripts-hours 12` previews, add `--apply` to delete. Records of live sessions and files that a process still has open are kept. The schedule never runs this step.
+
 Docker is not touched.
 
 ## Preview first, then apply
